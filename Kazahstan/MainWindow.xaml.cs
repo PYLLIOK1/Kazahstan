@@ -31,7 +31,7 @@ namespace Kazahstan
         {
             InitializeComponent();
         }
-        private static string DelProb( string str)
+        private static string DelProb(string str)
         {
             string newstr = "";
             for (int i = 0; i < str.Length; i++)
@@ -44,7 +44,7 @@ namespace Kazahstan
             return newstr;
         }
 
-    List<Parse> Liste = new List<Parse>();
+        List<Parse> Liste = new List<Parse>();
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             string kz = ".kz";
@@ -65,7 +65,7 @@ namespace Kazahstan
                     if ((cell[1] != null) && (cell[3] != null))
                     {
                         string name = cell[1].InnerText;
-                        name = name.Replace('\n',' ');
+                        name = name.Replace('\n', ' ');
                         name = name.Replace("&nbsp;", "");
                         string email = cell[3].InnerText;
                         email = email.Replace('\n', ' ');
@@ -78,14 +78,14 @@ namespace Kazahstan
                         {
                             if (email != "")
                             {
-                                if(!email.Contains("Ректор"))
+                                if (!email.Contains("Ректор"))
                                 {
                                     int m = email.IndexOf(ru);
-                                        while ((m != -1) && (email.Length > (m+ru.Length)))
-                                        {
-                                            email = email.Remove(m + ru.Length);
-                                            m = email.IndexOf(ru, m + ru.Length - 1);
-                                        }
+                                    while ((m != -1) && (email.Length > (m + ru.Length)))
+                                    {
+                                        email = email.Remove(m + ru.Length);
+                                        m = email.IndexOf(ru, m + ru.Length - 1);
+                                    }
                                     int l = email.IndexOf(kz);
                                     while ((l != -1) && (email.Length > (l + kz.Length)))
                                     {
@@ -94,8 +94,8 @@ namespace Kazahstan
                                     }
                                     Liste.Add(new Parse { Name = name, Email = email });
                                 }
-                            }                               
-                        }  
+                            }
+                        }
                     }
                 }
             }
@@ -103,7 +103,6 @@ namespace Kazahstan
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-
             XSSFWorkbook wb = new XSSFWorkbook();
             XSSFSheet sh = (XSSFSheet)wb.CreateSheet("Лист 1");
             int countColumn = 2;
@@ -113,17 +112,16 @@ namespace Kazahstan
                 for (int j = 0; j < countColumn; j++)
                 {
                     var currentCell = currentRow.CreateCell(j);
-                    if(j==0)
+                    if (j == 0)
                     {
                         currentCell.SetCellValue(Liste[i].Name);
                     }
-                    if(j==1)
+                    if (j == 1)
                     {
                         currentCell.SetCellValue(Liste[i].Email);
                     }
                     sh.AutoSizeColumn(j);
                 }
-
             }
             if (!File.Exists("d:\\etalgarcomnode7588.xlsx"))
             {
@@ -134,6 +132,7 @@ namespace Kazahstan
                 wb.Write(fs);
             }
             Process.Start("d:\\etalgarcomnode7588.xlsx");
+            Liste.Clear();
         }
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
@@ -141,21 +140,72 @@ namespace Kazahstan
             WebClient client = new WebClient() { Encoding = Encoding.UTF8 };
             string s = client.DownloadString("http://egov.kz/cms/ru/articles/2Fvusi_rk");
             client.Dispose();
+            string namestr = "";
+            string mailstr = "";
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(s);
-            HtmlNodeCollection all = doc.DocumentNode.SelectNodes("//div[@class='slidedown-content']");
-            if (all != null)
+            HtmlNodeCollection rows = doc.DocumentNode.SelectNodes("//tr");
+            if (rows != null)
             {
-                foreach (HtmlNode n in all)
+                foreach (HtmlNode node in rows)
                 {
+                    HtmlDocument docrows = new HtmlDocument();
+                    docrows.LoadHtml(node.InnerHtml);
+                    HtmlNodeCollection tds = docrows.DocumentNode.SelectNodes("//td");
+                    int index = 0; 
+                    if ((tds != null) && (tds.Count > 1))
+                    {
+                        foreach (HtmlNode td in tds)
+                        {
+                            if (index == 1)
+                            {
+                              namestr = td.InnerText.Replace("&nbsp;", "");
+                            }
+                            if (index == 2)
+                            {
+                                mailstr = td.InnerText;
+                                int indexstart = mailstr.IndexOf("Электронная", 0);
+                                if (indexstart == -1)
+                                {
+                                    continue;
+                                }
+                                int indexexit = mailstr.IndexOf(".kz", 0);
+                                int indexend = mailstr.IndexOf(".ru", 0);
+                                int indexleng = 0;
+                                if (indexexit > indexend)
+                                {
+                                    if(indexend < indexstart)
+                                    { indexleng = indexstart - indexend; }
+                                    else
+                                    indexleng = indexend - indexstart;
+                                }
+                                else
+                                {
+                                    if (indexexit < indexstart)
+                                    { indexleng = indexstart - indexexit; }
+                                    else
+                                    indexleng = indexexit - indexstart;
+                                }
+                                if (indexstart != -1)
+                                    {
+                                    mailstr = mailstr.Substring(indexstart, indexleng);
+                                }
+                            }
+                            index++;
+                        }
+                        if(!(namestr.Contains("ВУЗа")))
+                            {
+                            Liste.Add(new Parse { Name = namestr, Email = mailstr });
+                        }
 
+                    }
                 }
             }
         }
     }
-    public class Parse
-    {
-        public string Name { get; set; }
-        public string Email { get; set; }
-    }
+        public class Parse
+        {
+            public string Name { get; set; }
+            public string Email { get; set; }
+        }
 }
