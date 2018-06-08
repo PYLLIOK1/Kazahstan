@@ -123,87 +123,19 @@ namespace Kazahstan
                     sh.AutoSizeColumn(j);
                 }
             }
-            if (!File.Exists("d:\\etalgarcomnode7588.xlsx"))
+            if (!File.Exists("d:\\vuzkazahstan.xlsx"))
             {
-                File.Delete("d:\\etalgarcomnode7588.xlsx");
+                File.Delete("d:\\vuzkazahstan.xlsx");
             }
-            using (var fs = new FileStream("d:\\etalgarcomnode7588.xlsx", FileMode.Create, FileAccess.Write))
+            using (var fs = new FileStream("d:\\vuzkazahstan.xlsx", FileMode.Create, FileAccess.Write))
             {
                 wb.Write(fs);
             }
-            Process.Start("d:\\etalgarcomnode7588.xlsx");
+            Process.Start("d:\\vuzkazahstan.xlsx");
             Liste.Clear();
         }
-
-        private void Button_Click_2(object sender, RoutedEventArgs e)
-        {
-            WebClient client = new WebClient() { Encoding = Encoding.UTF8 };
-            string s = client.DownloadString("http://egov.kz/cms/ru/articles/2Fvusi_rk");
-            client.Dispose();
-            string namestr = "";
-            string mailstr = "";
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(s);
-            HtmlNodeCollection rows = doc.DocumentNode.SelectNodes("//tr");
-            if (rows != null)
-            {
-                foreach (HtmlNode node in rows)
-                {
-                    HtmlDocument docrows = new HtmlDocument();
-                    docrows.LoadHtml(node.InnerHtml);
-                    HtmlNodeCollection tds = docrows.DocumentNode.SelectNodes("//td");
-                    int index = 0; 
-                    if ((tds != null) && (tds.Count > 1))
-                    {
-                        foreach (HtmlNode td in tds)
-                        {
-                            if (index == 1)
-                            {
-                              namestr = td.InnerText.Replace("&nbsp;", "");
-                            }
-                            if (index == 2)
-                            {
-                                mailstr = td.InnerText;
-                                int indexstart = mailstr.IndexOf("Электронная", 0);
-                                if (indexstart == -1)
-                                {
-                                    continue;
-                                }
-                                int indexexit = mailstr.IndexOf(".kz", 0);
-                                int indexend = mailstr.IndexOf(".ru", 0);
-                                int indexleng = 0;
-                                if (indexexit > indexend)
-                                {
-                                    if(indexend < indexstart)
-                                    { indexleng = indexstart - indexend; }
-                                    else
-                                    indexleng = indexend - indexstart;
-                                }
-                                else
-                                {
-                                    if (indexexit < indexstart)
-                                    { indexleng = indexstart - indexexit; }
-                                    else
-                                    indexleng = indexexit - indexstart;
-                                }
-                                if (indexstart != -1)
-                                    {
-                                    mailstr = mailstr.Substring(indexstart, indexleng);
-                                }
-                            }
-                            index++;
-                        }
-                        if(!(namestr.Contains("ВУЗа")))
-                            {
-                            Liste.Add(new Parse { Name = namestr, Email = mailstr });
-                        }
-
-                    }
-                }
-            }
-        }
     }
-        public class Parse
+    public class Parse
         {
             public string Name { get; set; }
             public string Email { get; set; }
